@@ -22,7 +22,7 @@ import numbers
 import zipfile
 from collections import OrderedDict
 from torch.utils.data.sampler import Sampler
-from torch.distributed import get_world_size, get_rank
+# from torch.distributed import get_world_size, get_rank
 
 
 def show_image(input, bbox=None):
@@ -245,7 +245,7 @@ class DistributedBalancedSampler(Sampler):
 
     def __init__(self, dataset, num_replicas=None, rank=None):
         if num_replicas is None:
-            num_replicas = get_world_size()
+            num_replicas = 1
         if rank is None:
             rank = get_rank()
         self.dataset = dataset

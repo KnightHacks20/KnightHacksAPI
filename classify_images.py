@@ -50,7 +50,7 @@ import progressbar
 # little path management.  This also implicitly defers PyTorch imports.
 
 # Directory to which you sync'd this repo.
-api_root = r'/home/coyote/git/speciesclassification'
+api_root = r'C:/Code/GitHub/SpeciesClassification'
 
 # If not None, pre-pended to filenames.  Most useful when filenames are coming from 
 # a .csv file.
@@ -66,12 +66,12 @@ images_to_classify_base = None
 #
 # a directory, which is recursively enumerated
 # images_to_classify = r'/data/species-classification/elephant.jpg'
-# images_to_classify = [r'/data/species-classification/elephant.jpg']
+images_to_classify = [r'./elephant.jpg']
 # images_to_classify = 'image_list.csv'
-images_to_classify = r'/data/species-classification/images/sample_images.2019.12.28'
+# images_to_classify = r'/data/species-classification/images/sample_images.2019.12.28'
 
 # Classification results will be written here
-classification_output_file = '/data/species-classification/classification_output.csv'
+classification_output_file = './test.csv'
 
 # Path to taxa.csv, for latin --> common mapping
 #
@@ -91,8 +91,7 @@ detection_model_path = None
 
 # This must be True if detection is enabled.  Classification can be run
 # on the CPU or GPU.
-use_gpu = True
-
+use_gpu = False
 
 #%% Constants 
 
@@ -345,7 +344,6 @@ for i_fn,fn in enumerate(images):
                 i_fn,fn,query,i_prediction,latin_name,common_name,likelihood)
         if classification_output_file is not None:
             f.write(s + '\n')
-        print(s)
         
     if debug_max_images > 0 and i_fn >= debug_max_images:
         break
