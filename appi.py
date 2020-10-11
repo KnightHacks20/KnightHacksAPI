@@ -105,12 +105,11 @@ if taxonomy_path is not None:
     
     print('Finished reading taxonomy file')
 
-if (model is not None) {
+if (model is not None):
 	model = speciesapi.DetectionClassificationAPI(classification_model_path, 
 	                                              detection_model_path,
 	                                              image_sizes, 
 	                                              use_gpu)	
-}
 
 # @app.route('/')
 # def home():
