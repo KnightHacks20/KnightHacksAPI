@@ -110,6 +110,10 @@ model = speciesapi.DetectionClassificationAPI(classification_model_path,
                                               image_sizes, 
                                               use_gpu)
 
+@app.route('/')
+def home():
+    return 'SPECIATE'
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
