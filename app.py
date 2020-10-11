@@ -113,9 +113,10 @@ if taxonomy_path is not None:
 model = speciesapi.DetectionClassificationAPI(classification_model_path, 
                                                   detection_model_path,
                                                   image_sizes, 
-                                                  use_gpu)  
-index = 0
+                                                  use_gpu)
 upload_folder = "./data"
+app.config['upload_folder'] = upload_folder
+indexer = 0
 
 @app.route('/')
 def home():
@@ -125,10 +126,9 @@ def home():
 def predict():
     if request.method == 'POST':
         file = request.files['file']
-        filename = "image" + index + ".jpg"
+        filename = get_filename()
         destination = "/".join([upload_folder, filename])
         file.save(destination)
-        index += 1
         predictions = get_prediction(destination)
     return predictions
 
@@ -138,6 +138,12 @@ def get_image():
     filename = "image" + index + ".jpg"
     destination = "/".join([upload_folder, filename])
     return send_file(destination, mimetype='image/jpg')
+
+def get_filename():
+    global indexer 
+    filename = "image" + str(indexer) + ".jpg"
+    indexer += 1
+    return filename
 
 def get_prediction(path):
     path = path.replace('\\','/')
@@ -160,7 +166,7 @@ def get_prediction(path):
         "latin_name": latin_name,
         "likelihood": likelihood,
         "status": status,
-        "index": index
+        "index": indexer
     }
     output = json.dumps(output)
 
