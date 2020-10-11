@@ -70,10 +70,6 @@ def do_latin_to_common(latin_name):
 
     return common_name
 
-classification_model_path = download_url(classification_model_path)   
-if taxonomy_path is not None:
-    taxonomy_path = download_url(taxonomy_path) 
-
 latin_to_common = {}
 
 if taxonomy_path is not None:
@@ -105,12 +101,6 @@ if taxonomy_path is not None:
     
     print('Finished reading taxonomy file')
 
-if (model is not None):
-	model = speciesapi.DetectionClassificationAPI(classification_model_path, 
-	                                              detection_model_path,
-	                                              image_sizes, 
-	                                              use_gpu)	
-
 # @app.route('/')
 # def home():
 #     return 'SPECIATE'
@@ -118,10 +108,18 @@ if (model is not None):
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
+		classification_model_path = download_url(classification_model_path)   
+		if taxonomy_path is not None:
+		    taxonomy_path = download_url(taxonomy_path)  
+      	model = speciesapi.DetectionClassificationAPI(classification_model_path, 
+                                          detection_model_path,
+                                          image_sizes, 
+                                          use_gpu)	
     	params = request.get_json(force=True)
     	print(params)
     	path = params['path']
     	predictions = get_prediction(path)
+    	del model
     return jsonify({'species': predictions})
 
 def get_prediction(path):
