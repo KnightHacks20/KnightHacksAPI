@@ -37,62 +37,23 @@ import pandas as pd
 import glob
 import urllib
 import tempfile
-
-# pip install progressbar2, not progressbar
 import progressbar
+import warnings
+warnings.filterwarnings("ignore")
 
-# Species classification modules will be imported later
+api_root = r'./'
 
-
-#%% Options
-
-# Species classification API imports deferred until later, since we have to do a 
-# little path management.  This also implicitly defers PyTorch imports.
-
-# Directory to which you sync'd this repo.
-api_root = r'C:/Code/GitHub/SpeciesClassification'
-
-# If not None, pre-pended to filenames.  Most useful when filenames are coming from 
-# a .csv file.
 images_to_classify_base = None
+images_to_classify = [r'./test/elephant.jpg']
+classification_output_file = './test/test.csv'
 
-# images_to_classify can be:
-#
-# an array of filenames
-#
-# a .csv file
-#
-# a single image file
-#
-# a directory, which is recursively enumerated
-# images_to_classify = r'/data/species-classification/elephant.jpg'
-images_to_classify = [r'./elephant.jpg']
-# images_to_classify = 'image_list.csv'
-# images_to_classify = r'/data/species-classification/images/sample_images.2019.12.28'
-
-# Classification results will be written here
-classification_output_file = './test.csv'
-
-# Path to taxa.csv, for latin --> common mapping
-#
-# Set to None to disable latin --> common mapping
-#
-# If a URL, will be automatically downloaded to a temp folder.
-taxonomy_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.taxa.csv'
-
-# Path to our classification model file.
-#
-# If a URL, will be automatically downloaded to a temp folder.
+taxonomy_path = None
 classification_model_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.pytorch'
-
-# Detection (i.e., bounding box generation) is optional; set to None 
-# to disable detection
 detection_model_path = None
 
 # This must be True if detection is enabled.  Classification can be run
 # on the CPU or GPU.
 use_gpu = False
-
 #%% Constants 
 
 subdirs_to_import = ['DetectionClassificationAPI','FasterRCNNDetection','PyTorchClassification']    
@@ -104,17 +65,15 @@ subdirs_to_import = ['DetectionClassificationAPI','FasterRCNNDetection','PyTorch
 # ensemble. For ResNext, we typically specify [448].
 #
 image_sizes = [560, 560]
-
 mak_k_to_print = 3
 debug_max_images = -1
 
-
 #%% Path setup to import the classification code
 
-if (not api_root.lower() in map(str.lower,sys.path)):
+# if (not api_root.lower() in map(str.lower,sys.path)):
     
-    print('Adding {} to the python path'.format(api_root))
-    sys.path.insert(0,api_root)
+#     print('Adding {} to the python path'.format(api_root))
+#     sys.path.insert(0,api_root)
 
 for s in subdirs_to_import:
     if (not s.lower() in map(str.lower,sys.path)):
@@ -122,45 +81,13 @@ for s in subdirs_to_import:
         print('Adding {} to the python path'.format(import_path))
         sys.path.insert(0,import_path)    
 
-
-#%% Import classification modules
-
 import api as speciesapi
-
-
-#%% Support functions
-
-class DownloadProgressBar():
-    '''
-    Console progress indicator for downloads.
-    
-    stackoverflow.com/questions/37748105/how-to-use-progressbar-module-with-urlretrieve
-    '''
-    
-    def __init__(self):
-        self.pbar = None
-
-    def __call__(self, block_num, block_size, total_size):
-        if not self.pbar:
-            self.pbar = progressbar.ProgressBar(max_value=total_size)
-            self.pbar.start()
-            
-        downloaded = block_num * block_size
-        if downloaded < total_size:
-            self.pbar.update(downloaded)
-        else:
-            self.pbar.finish()
-            
             
 def download_url(url, destination_filename=None, progress_updater=None, force_download=False, 
                  temp_dir=None):
     '''
     Download a URL to a temporary file
     '''
-
-    if progress_updater is None:
-        progress_updater = DownloadProgressBar()
-        
     if temp_dir is None:
         temp_dir = os.path.join(tempfile.gettempdir(),'species_classification')
         os.makedirs(temp_dir,exist_ok=True)
@@ -207,17 +134,9 @@ def do_latin_to_common(latin_name):
 
 #%% Download models if necessary
 
-if classification_model_path.startswith('http'):
-    classification_model_path = download_url(classification_model_path)
-assert(os.path.isfile(classification_model_path))    
-
-if taxonomy_path.startswith('http'):
-    taxonomy_path = download_url(taxonomy_path)
-assert(os.path.isfile(taxonomy_path))    
-
-if detection_model_path is not None:
-    detection_model_path = download_url(detection_model_path)
-    assert os.path.isfile(detection_model_path)
+classification_model_path = download_url(classification_model_path)   
+if taxonomy_path is not None:
+    taxonomy_path = download_url(taxonomy_path) 
 
 
 #%% Build Latin --> common mapping
@@ -335,7 +254,7 @@ for i_fn,fn in enumerate(images):
         continue
 
     # i_prediction = 0
-    for i_prediction in range(0, min(len(prediction.species),mak_k_to_print)):
+    for i_prediction in range(0, min(len(prediction.species), mak_k_to_print)):
         latin_name = prediction.species[i_prediction]
         likelihood = prediction.species_scores[i_prediction]
         likelihood = '{0:0.3f}'.format(likelihood)
