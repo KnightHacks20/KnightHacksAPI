@@ -23,7 +23,7 @@ American alligator Alligator mississippiensis FT(S/A)
 American crocodile Crocodylus acutus FT
 Atlantic salt marsh snake Nerodia clarkii taeniata FT
 Barbour’s map turtle Graptemys barbouri SSC
-Bluetail mole skink Eumeces egregius lividus FT 
+Bluetail mole skink Eumeces egregius lividus FT
 Eastern indigo snake Drymarchon corais couperi FT
 Florida brownsnake Storeria victa ST
 Florida Keys mole skink Eumeces egregius egregius SSC
@@ -55,7 +55,7 @@ Florida grasshopper sparrow Ammodramus savannarum floridanus FE
 Florida sandhill crane Grus canadensis pratensis ST
 Florida scrub-jay Aphelocoma coerulescens FT
 Ivory-billed woodpecker Campephilus principalis FE
-Kirtland’s warbler FE 
+Kirtland’s warbler FE
 Least tern Sterna antillarum ST
 Limpkin Aramus guarauna SSC
 Little blue heron Egretta caerulea SSC
@@ -86,7 +86,7 @@ Eastern chipmunk Tamias striatus SSC
 Everglades mink Neovison vison evergladensis ST
 Finback whale Balaenoptera physalus FE
 Florida bonneted bat Eumops floridanus FE
-Florida mouse Podomys floridanus SSC 
+Florida mouse Podomys floridanus SSC
 Florida panther Puma concolor coryi FE
 Florida salt marsh vole Microtus pennsylvanicus dukecampbelli FE
 Gray bat Myotis grisescens FE
@@ -116,7 +116,7 @@ Lobed star coral Orbicella annularis FT
 Mountainous star coral Orbicella faveolata FT
 Pillar coral Dendrogyra cylindricus ST
 Rough cactus coral Mycetophyllia ferox FT
-Staghorn coral Acropora cervicornis FT 
+Staghorn coral Acropora cervicornis FT
 Black Creek crayfish Procambarus pictus SSC
 Panama City crayfish Procambarus econfinae SSC
 Santa Fe Cave crayfish Procambarus erythrops SSC
@@ -134,6 +134,6 @@ Fuzzy pigtoe Pleurobema strodeanum FT
 Narrow pigtoe Fusconai escambia FT
 Round ebonyshell Fusconaia rotulata FE
 Southern kidneyshell Ptychobranchus jonesi FE
-Southern sandshell Hamiota australis FT 
+Southern sandshell Hamiota australis FT
 Stock Island tree snail Orthalicus reses FT
 Tapered pigtoe Fusconaia burki FT

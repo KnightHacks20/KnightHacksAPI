@@ -5,21 +5,24 @@ import glob
 import urllib
 import tempfile
 import warnings
+import json
+from PIL import Image  
+import PIL
 warnings.filterwarnings("ignore")
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 app = Flask(__name__)
 
 api_root = r'./'
-# taxonomy_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.taxa.csv'
-taxonomy_path = None
+taxonomy_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.taxa.csv'
+# taxonomy_path = None
 classification_model_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.pytorch'
 detection_model_path = None
 
 subdirs_to_import = ['DetectionClassificationAPI','FasterRCNNDetection','PyTorchClassification']    
 
 image_sizes = [560, 560]
-mak_k_to_print = 3
+mak_k_to_print = 1
 use_gpu = False
 
 for s in subdirs_to_import:
@@ -76,6 +79,9 @@ if taxonomy_path is not None:
 
 latin_to_common = {}
 
+with open('./species/species-list.json') as f:
+  species_list = json.load(f)
+
 if taxonomy_path is not None:
         
     print('Reading taxonomy file from {}'.format(taxonomy_path))
@@ -91,7 +97,6 @@ if taxonomy_path is not None:
     nRows = df.shape[0]
         
     for index, row in df.iterrows():
-    
         latin_name = row['scientificName']
         latin_name = latin_name.strip()
         if len(latin_name)==0:
@@ -106,9 +111,11 @@ if taxonomy_path is not None:
     print('Finished reading taxonomy file')
 
 model = speciesapi.DetectionClassificationAPI(classification_model_path, 
-	                                              detection_model_path,
-	                                              image_sizes, 
-	                                              use_gpu)	
+                                                  detection_model_path,
+                                                  image_sizes, 
+                                                  use_gpu)  
+index = 0
+upload_folder = "./data"
 
 @app.route('/')
 def home():
@@ -117,29 +124,47 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
-    	params = request.get_json(force=True)
-    	print(params)
-    	path = params['path']
-    	predictions = get_prediction(path)
-    return jsonify({'species': predictions})
+        file = request.files['file']
+        filename = "image" + index + ".jpg"
+        destination = "/".join([upload_folder, filename])
+        file.save(destination)
+        index += 1
+        predictions = get_prediction(destination)
+    return predictions
+
+@app.route('/get_image')
+def get_image():
+    index = request.args.get('index')
+    filename = "image" + index + ".jpg"
+    destination = "/".join([upload_folder, filename])
+    return send_file(destination, mimetype='image/jpg')
 
 def get_prediction(path):
-	path = path.replace('\\','/')
-	query = ''
-	prediction = model.predict_image(path, topK=min(5,mak_k_to_print), multiCrop=False, 
-	                                             predict_mode=speciesapi.PredictMode.classifyOnly)
-	output_preds = []
+    path = path.replace('\\','/')
+    query = ''
+    prediction = model.predict_image(path, topK=min(5,mak_k_to_print), multiCrop=False, 
+                                                 predict_mode=speciesapi.PredictMode.classifyOnly)
 
-	for i_prediction in range(0, min(len(prediction.species), mak_k_to_print)):
-	    latin_name = prediction.species[i_prediction]
-	    likelihood = prediction.species_scores[i_prediction]
-	    likelihood = '{0:0.3f}'.format(likelihood)
-	    common_name = do_latin_to_common(latin_name)
-	    s = '"{}","{}","{}","{}",{}","{}","{}"'.format(
-	            0, path,query,i_prediction,latin_name,common_name,likelihood)
-	    output_preds.append(s)
+    latin_name = prediction.species[0]
+    likelihood = prediction.species_scores[0]
+    likelihood = '{0:0.3f}'.format(likelihood)
+    common_name = do_latin_to_common(latin_name).title()
 
-	return output_preds
+    if latin_name in species_list:
+        status = species_list[latin_name]
+    else:
+        status = "Least Concern"
+
+    output = {
+        "common_name": common_name,
+        "latin_name": latin_name,
+        "likelihood": likelihood,
+        "status": status,
+        "index": index
+    }
+    output = json.dumps(output)
+
+    return output
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)    
