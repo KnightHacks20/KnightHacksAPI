@@ -37,7 +37,6 @@ import pandas as pd
 import glob
 import urllib
 import tempfile
-import progressbar
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -50,11 +49,7 @@ classification_output_file = './test/test.csv'
 taxonomy_path = None
 classification_model_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.pytorch'
 detection_model_path = None
-
-# This must be True if detection is enabled.  Classification can be run
-# on the CPU or GPU.
 use_gpu = False
-#%% Constants 
 
 subdirs_to_import = ['DetectionClassificationAPI','FasterRCNNDetection','PyTorchClassification']    
 
@@ -108,7 +103,6 @@ def download_url(url, destination_filename=None, progress_updater=None, force_do
     print('...done, {} bytes.'.format(nBytes))
     return destination_filename
 
-
 def do_latin_to_common(latin_name):
     '''
     Latin --> common lookup
@@ -137,7 +131,6 @@ def do_latin_to_common(latin_name):
 classification_model_path = download_url(classification_model_path)   
 if taxonomy_path is not None:
     taxonomy_path = download_url(taxonomy_path) 
-
 
 #%% Build Latin --> common mapping
 
@@ -175,101 +168,67 @@ if taxonomy_path is not None:
 
 #%% Create the model(s)
 
-print('Loading model')
-model = speciesapi.DetectionClassificationAPI(classification_model_path, 
-                                              detection_model_path,
-                                              image_sizes, 
-                                              use_gpu)
-print('Finished loading model')
+# print('Loading model')
+# model = speciesapi.DetectionClassificationAPI(classification_model_path, 
+#                                               detection_model_path,
+#                                               image_sizes, 
+#                                               use_gpu)
+# print('Finished loading model')
 
 
 #%% Prepare the list of images and query names
 
-queries = None
+# if isinstance(images_to_classify,str):
+#     images_to_classify = [images_to_classify]
+# assert isinstance(images_to_classify,list)
+# images = images_to_classify
+# print('Processing a list of {} images'.format(len(images)))
 
-# If we specified a folder    
-if isinstance(images_to_classify,str) and os.path.isdir(images_to_classify):
-    
-    images = glob.glob(os.path.join(images_to_classify,'**/*.*'), recursive=True)
-    images = [fn for fn in images if os.path.isfile(fn)]
-    queries = [os.path.basename(os.path.dirname(fn)) for fn in images]
-    print('Loaded a folder of {} images'.format(len(images)))    
+# n_errors = 0
+# n_images_classified = 0
+# n_images = len(images)
 
-# If we specified a .csv file    
-elif isinstance(images_to_classify,str) and images_to_classify.endswith('.csv'):
-    
-    print('Reading image list file')
-    df_images = pd.read_csv(images_to_classify,header=None)
-    df_images.columns = ['filename','query_string']
-    n_images = len(images)    
-    print('Read {} image names'.format(len(images)))
-    images = list(df_images.filename)
-    queries = list(df_images.query_string)
-    assert(len(queries) == len(images))
+# if classification_output_file is not None:
+#     f = open(classification_output_file,'w+')
 
-# If we specified a list  or a single file   
-else:
+# # i_fn = 1; fn = images[i_fn]    
+# for i_fn,fn in enumerate(images):
     
-    if isinstance(images_to_classify,str):
-        images_to_classify = [images_to_classify]
+#     print('Processing image {} of {}'.format(i_fn,n_images))
+#     fn = fn.replace('\\','/')
+#     query = ''
         
-    assert isinstance(images_to_classify,list)
-    images = images_to_classify
-    queries = None
-    print('Processing a list of {} images'.format(len(images)))
+#     if images_to_classify_base is not None:
+#         fn = os.path.join(images_to_classify_base,fn)
+
+#     # with torch.no_grad():
+#     # print('Clasifying image {}'.format(fn))
+#     # def predict_image(self, image_path, topK=1, multiCrop=False, predict_mode=PredictMode.classifyUsingDetect):
+#     try:
+#         prediction = model.predict_image(fn, topK=min(5,mak_k_to_print), multiCrop=False, 
+#                                              predict_mode=speciesapi.PredictMode.classifyOnly)
+#         n_images_classified = n_images_classified + 1
+        
+#     except Exception as e:
+#         print('Error classifying image {} ({}): {}'.format(i_fn,fn,str(e)))
+#         n_errors = n_errors + 1
+#         continue
+
+#     # i_prediction = 0
+#     for i_prediction in range(0, min(len(prediction.species), mak_k_to_print)):
+#         latin_name = prediction.species[i_prediction]
+#         likelihood = prediction.species_scores[i_prediction]
+#         likelihood = '{0:0.3f}'.format(likelihood)
+#         common_name = do_latin_to_common(latin_name)
+#         s = '"{}","{}","{}","{}",{}","{}","{}"'.format(
+#                 i_fn,fn,query,i_prediction,latin_name,common_name,likelihood)
+#         if classification_output_file is not None:
+#             f.write(s + '\n')
+        
+#     if debug_max_images > 0 and i_fn >= debug_max_images:
+#         break
+        
+# if classification_output_file is not None:
+#     f.close()
     
-
-#%% Classify images
-
-n_errors = 0
-n_images_classified = 0
-n_images = len(images)
-
-if classification_output_file is not None:
-    f = open(classification_output_file,'w+')
-
-# i_fn = 1; fn = images[i_fn]    
-for i_fn,fn in enumerate(images):
-    
-    print('Processing image {} of {}'.format(i_fn,n_images))
-    fn = fn.replace('\\','/')
-    query = ''
-    if queries is not None:
-        query = queries[i_fn]
-        
-    if images_to_classify_base is not None:
-        fn = os.path.join(images_to_classify_base,fn)
-
-    # with torch.no_grad():
-    # print('Clasifying image {}'.format(fn))
-    # def predict_image(self, image_path, topK=1, multiCrop=False, predict_mode=PredictMode.classifyUsingDetect):
-    try:
-        prediction = model.predict_image(fn, topK=min(5,mak_k_to_print), multiCrop=False, 
-                                             predict_mode=speciesapi.PredictMode.classifyOnly)
-        n_images_classified = n_images_classified + 1
-        
-    except Exception as e:
-        print('Error classifying image {} ({}): {}'.format(i_fn,fn,str(e)))
-        n_errors = n_errors + 1
-        continue
-
-    # i_prediction = 0
-    for i_prediction in range(0, min(len(prediction.species), mak_k_to_print)):
-        latin_name = prediction.species[i_prediction]
-        likelihood = prediction.species_scores[i_prediction]
-        likelihood = '{0:0.3f}'.format(likelihood)
-        common_name = do_latin_to_common(latin_name)
-        s = '"{}","{}","{}","{}",{}","{}","{}"'.format(
-                i_fn,fn,query,i_prediction,latin_name,common_name,likelihood)
-        if classification_output_file is not None:
-            f.write(s + '\n')
-        
-    if debug_max_images > 0 and i_fn >= debug_max_images:
-        break
-
-# ...for each image
-        
-if classification_output_file is not None:
-    f.close()
-    
-print('Finished classifying {} of {} images ({} errors)'.format(n_images_classified,n_images,n_errors))
+# print('Finished classifying {} of {} images ({} errors)'.format(n_images_classified,n_images,n_errors))
