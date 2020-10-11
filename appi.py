@@ -11,8 +11,8 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 api_root = r'./'
-taxonomy_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.taxa.csv'
-# taxonomy_path = None
+# taxonomy_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.taxa.csv'
+taxonomy_path = None
 classification_model_path = 'https://lilablobssc.blob.core.windows.net/models/species_classification/species_classification.2019.12.00.pytorch'
 detection_model_path = None
 
@@ -105,10 +105,12 @@ if taxonomy_path is not None:
     
     print('Finished reading taxonomy file')
 
-model = speciesapi.DetectionClassificationAPI(classification_model_path, 
-                                              detection_model_path,
-                                              image_sizes, 
-                                              use_gpu)
+if (model is not None) {
+	model = speciesapi.DetectionClassificationAPI(classification_model_path, 
+	                                              detection_model_path,
+	                                              image_sizes, 
+	                                              use_gpu)	
+}
 
 # @app.route('/')
 # def home():
